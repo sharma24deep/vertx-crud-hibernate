@@ -47,6 +47,9 @@ class TaskRepositoryImplTest {
     hibernateProps.put("hibernate.connection.password", DB_PASSWORD);
     hibernateProps.put("javax.persistence.schema-generation.database.action", "create");
     hibernateProps.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQL95Dialect");
+    hibernateProps.put("hibernate.generate_statistics", true);
+//    hibernateProps.put("hibernate.show_sql", true);
+//    hibernateProps.put("hibernate.format_sql", true);
     Configuration hibernateConfiguration = new Configuration();
     hibernateConfiguration.setProperties(hibernateProps);
     hibernateConfiguration.addAnnotatedClass(Task.class);
