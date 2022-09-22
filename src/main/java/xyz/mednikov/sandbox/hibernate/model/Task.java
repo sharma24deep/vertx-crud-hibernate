@@ -1,9 +1,6 @@
 package xyz.mednikov.sandbox.hibernate.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -17,6 +14,9 @@ public class Task {
   private String content;
   private boolean completed;
   private LocalDateTime createdAt;
+
+  @ManyToOne @JoinColumn(name="projectId", nullable=true)
+  private Project project;
 
   public Task(){
 
@@ -60,6 +60,14 @@ public class Task {
 
   public void setCreatedAt(LocalDateTime createdAt) {
     this.createdAt = createdAt;
+  }
+
+  public Project getProject() {
+    return project;
+  }
+
+  public void setProject(Project project) {
+    this.project = project;
   }
 
   @Override

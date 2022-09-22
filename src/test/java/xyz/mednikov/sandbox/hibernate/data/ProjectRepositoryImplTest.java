@@ -16,16 +16,14 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import xyz.mednikov.sandbox.hibernate.model.Project;
+import xyz.mednikov.sandbox.hibernate.model.ProjectDTO;
 import xyz.mednikov.sandbox.hibernate.model.Task;
-import xyz.mednikov.sandbox.hibernate.model.TaskDTO;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.Properties;
 
-@Testcontainers
 @ExtendWith(VertxExtension.class)
-class TaskRepositoryImplTest {
+@Testcontainers
+class ProjectRepositoryImplTest {
 
   private final String DB_NAME = "hibernatedb";
   private final String DB_USER = "user";
@@ -37,7 +35,7 @@ class TaskRepositoryImplTest {
     .withUsername(DB_USER)
     .withPassword(DB_PASSWORD);
 
-  TaskRepositoryImpl repository;
+  ProjectRepositoryImpl repository;
 
   @BeforeEach
   void setup(Vertx vertx, VertxTestContext context){
@@ -48,9 +46,6 @@ class TaskRepositoryImplTest {
     hibernateProps.put("hibernate.connection.password", DB_PASSWORD);
     hibernateProps.put("javax.persistence.schema-generation.database.action", "create");
     hibernateProps.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQL95Dialect");
-    hibernateProps.put("hibernate.generate_statistics", true);
-//    hibernateProps.put("hibernate.show_sql", true);
-//    hibernateProps.put("hibernate.format_sql", true);
     Configuration hibernateConfiguration = new Configuration();
     hibernateConfiguration.setProperties(hibernateProps);
     hibernateConfiguration.addAnnotatedClass(Task.class);
@@ -59,15 +54,15 @@ class TaskRepositoryImplTest {
       .applySettings(hibernateConfiguration.getProperties()).build();
     Stage.SessionFactory sessionFactory = hibernateConfiguration
       .buildSessionFactory(serviceRegistry).unwrap(Stage.SessionFactory.class);
-    repository = new TaskRepositoryImpl(sessionFactory);
+    repository = new ProjectRepositoryImpl(sessionFactory);
     context.completeNow();
   }
 
   @Test
-  void createTaskTest(Vertx vertx, VertxTestContext context){
-    TaskDTO taskDTO = new TaskDTO(null, 1, "My task", false, LocalDateTime.now(), Optional.empty());
+  void createProjectTest(Vertx vertx, VertxTestContext context){
+    ProjectDTO projectDTO = new ProjectDTO(null, 1, "My project");
     context.verify(() -> {
-      repository.createTask(taskDTO)
+      repository.createProject(projectDTO)
         .onFailure(err -> context.failNow(err))
         .onSuccess(result -> {
           Assertions.assertNotNull(result);
@@ -79,9 +74,9 @@ class TaskRepositoryImplTest {
   }
 
   @Test
-  void findTaskByIdDoesNotExistTest(Vertx vertx, VertxTestContext context){
+  void findProjectByIdDoesNotExistTest(Vertx vertx, VertxTestContext context){
     context.verify(() -> {
-      repository.findTaskById(1)
+      repository.findProjectById(1)
         .onSuccess(r -> {
           Assertions.assertTrue(r.isEmpty());
           context.completeNow();
@@ -91,11 +86,11 @@ class TaskRepositoryImplTest {
   }
 
   @Test
-  void findTaskByIdExistsTest(Vertx vertx, VertxTestContext context){
-    TaskDTO taskDTO = new TaskDTO(null, 1, "My task", false, LocalDateTime.now(), Optional.empty());
+  void findProjectByIdExistsTest(Vertx vertx, VertxTestContext context){
+    ProjectDTO projectDTO = new ProjectDTO(null, 1, "My project");
     context.verify(() -> {
-      repository.createTask(taskDTO)
-        .compose(r -> repository.findTaskById(r.id()))
+      repository.createProject(projectDTO)
+        .compose(r -> repository.findProjectById(r.id()))
         .onFailure(err -> context.failNow(err))
         .onSuccess(result -> {
           Assertions.assertTrue(result.isPresent());
@@ -105,14 +100,14 @@ class TaskRepositoryImplTest {
   }
 
   @Test
-  void removeTaskTest(Vertx vertx, VertxTestContext context){
-    TaskDTO taskDTO = new TaskDTO(null, 1, "My task", false, LocalDateTime.now(), Optional.empty());
+  void removeProjectTest(Vertx vertx, VertxTestContext context){
+    ProjectDTO projectDTO = new ProjectDTO(null, 1, "My project");
     context.verify(() -> {
-      repository.createTask(taskDTO)
+      repository.createProject(projectDTO)
         .compose(r -> {
           Assertions.assertEquals(1, r.id());
-          return repository.removeTask(r.id());
-        }).compose(r -> repository.findTaskById(1))
+          return repository.removeProject(r.id());
+        }).compose(r -> repository.findProjectById(1))
         .onFailure(err -> context.failNow(err))
         .onSuccess(r -> {
           Assertions.assertTrue(r.isEmpty());
@@ -122,46 +117,45 @@ class TaskRepositoryImplTest {
   }
 
   @Test
-  void updateTaskTest(Vertx vertx, VertxTestContext context){
-    TaskDTO taskDTO = new TaskDTO(null, 1, "My task", false, LocalDateTime.now(), Optional.empty());
+  void updateProjectTest(Vertx vertx, VertxTestContext context){
+    ProjectDTO projectDTO = new ProjectDTO(null, 1, "My project");
     context.verify(() -> {
-      repository.createTask(taskDTO)
+      repository.createProject(projectDTO)
         .compose(r -> {
           Assertions.assertEquals(1, r.id());
-          TaskDTO updatedTask = new TaskDTO(1, r.userId(), "Updated content", true, r.createdAt(), Optional.empty());
-          return repository.updateTask(updatedTask);
+          ProjectDTO updatedProject = new ProjectDTO(r.id(), r.userId(), "My updated project");
+          return repository.updateProject(updatedProject);
         }).compose(r -> {
-          Assertions.assertTrue(r.completed());
-          Assertions.assertEquals("Updated content", r.content());
-          return repository.findTaskById(1);
+          Assertions.assertEquals("My updated project", r.name());
+          return repository.findProjectById(1);
         }).onFailure(err -> context.failNow(err))
         .onSuccess(r ->{
           Assertions.assertTrue(r.isPresent());
-          TaskDTO result = r.get();
-          Assertions.assertTrue(result.completed());
-          Assertions.assertEquals("Updated content", result.content());
+          ProjectDTO result = r.get();
+          Assertions.assertEquals("My updated project", result.name());
           context.completeNow();
         });
     });
   }
 
   @Test
-  void findTasksByUserTest(Vertx vertx, VertxTestContext context){
-    TaskDTO task1 = new TaskDTO(null, 1, "My task", false, LocalDateTime.now(), Optional.empty());
-    TaskDTO task2 = new TaskDTO(null, 1, "My task", false, LocalDateTime.now(), Optional.empty());
-    TaskDTO task3 = new TaskDTO(null, 2, "My task", false, LocalDateTime.now(), Optional.empty());
-    CompositeFuture createTasks = CompositeFuture.join(repository.createTask(task1), repository.createTask(task2), repository.createTask(task3));
+  void findProjectsByUserTest(Vertx vertx, VertxTestContext context){
+    ProjectDTO project1 = new ProjectDTO(null, 1, "My project");
+    ProjectDTO project2 = new ProjectDTO(null, 1, "My project");
+    ProjectDTO project3 = new ProjectDTO(null, 2, "My project");
+    CompositeFuture createTasks = CompositeFuture.join(
+      repository.createProject(project1),
+      repository.createProject(project2),
+      repository.createProject(project3)
+    );
     context.verify(() -> {
       createTasks.compose(r -> {
-        Assertions.assertTrue(r.succeeded());
-        Assertions.assertTrue(r.isComplete());
-        System.out.println(r.list().get(0));
-        System.out.println(r.list().get(1));
-        System.out.println(r.list().get(2));
-        return repository.findTasksByUser(1);
-      }).onFailure(err -> context.failNow(err))
+          Assertions.assertTrue(r.succeeded());
+          Assertions.assertTrue(r.isComplete());
+          return repository.findProjectsByUser(1);
+        }).onFailure(err -> context.failNow(err))
         .onSuccess(r -> {
-          Assertions.assertEquals(2, r.tasks().size());
+          Assertions.assertEquals(2, r.projects().size());
           context.completeNow();
         });
     });
