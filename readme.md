@@ -9,6 +9,7 @@ The series includes following parts:
 3. Part 3 [Logging patterns with Hibernate Reactive and Vertx](https://youtu.be/8Z76rCcnGKQ)
 4. Part 4 [Relationships with Hibernate Reactive and Vertx](https://youtu.be/5kTlgcAI0A0)
 5. Part 5 [Object level permissions with Hibernate Reactive and Vertx](https://youtu.be/zyVCOiEFrJ4)
+6. Part 6 [REST API with Hibernate Reactive and Vertx](https://youtu.be/KQlp1XyFxYw)
 
 ## System requirements
 
