@@ -1,2 +1,22 @@
-package xyz.mednikov.sandbox.hibernate;public class TestMainVerticle {
+package xyz.mednikov.sandbox.hibernate;
+
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+@ExtendWith(VertxExtension.class)
+public class TestMainVerticle {
+
+  @BeforeEach
+  void deploy_verticle(Vertx vertx, VertxTestContext testContext) {
+    testContext.completeNow();
+  }
+
+  @Test
+  void verticle_deployed(Vertx vertx, VertxTestContext testContext) throws Throwable {
+    testContext.completeNow();
+  }
 }

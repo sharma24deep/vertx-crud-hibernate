@@ -8,6 +8,7 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.reactive.provider.ReactiveServiceRegistryBuilder;
 import org.hibernate.reactive.stage.Stage;
 import org.hibernate.service.ServiceRegistry;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import xyz.mednikov.sandbox.hibernate.model.Task;
@@ -17,6 +18,7 @@ import java.util.Properties;
 import java.util.concurrent.CompletionStage;
 
 @ExtendWith(VertxExtension.class)
+@Disabled
 class HibernateConfigurationTest {
 
   @Test
